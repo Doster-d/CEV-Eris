@@ -1034,10 +1034,78 @@
 		if(length(targets))
 			playsound(get_turf(src), 'sound/effects/shieldbash.ogg', 100, 1)
 
+/obj/item/mech_equipment/mounted_system/mace
+	name = "\improper NT \"Warhead\" mace"
+	desc = "An exosuit-mounted mace. Handle with care."
+	icon_state = "mech_mace"
+	holding_type = /obj/item/tool/hammer/mace/mech
+	restricted_hardpoints = list(HARDPOINT_LEFT_HAND, HARDPOINT_RIGHT_HAND)
+	matter = list(MATERIAL_PLASTEEL = 15, MATERIAL_PLASTIC = 10)
+	origin_tech = list(TECH_COMBAT = 4, TECH_MAGNET = 3)
+
+/obj/item/mech_equipment/mounted_system/mace/Initialize()
+	. = ..()
+	var/obj/item/tool/hammer/mace/mech/holdin = holding
+	holdin.wielded = TRUE
+
+/obj/item/mech_equipment/mounted_system/mace/activate()
+	. = ..()
+	owner.update_icon()
+
+/obj/item/mech_equipment/mounted_system/mace/deactivate()
+	. = ..()
+	owner.update_icon()
+
+/obj/item/mech_equipment/mounted_system/mace/on_select()
+	. = ..()
+	activate()
+
+/obj/item/mech_equipment/mounted_system/mace/on_unselect()
+	. = ..()
+	deactivate()
+
+/obj/item/mech_equipment/mounted_system/mace/resolve_attackby(mob/living/target, mob/user, params)
+	. = ..()
+	if(. && ismech(loc) && istype(target) && target != loc)
+		if(ishuman(target))
+			var/mob/living/carbon/human/targ = target
+			if(targ.stats.getStat(STAT_VIG) > STAT_LEVEL_EXPERT)
+				targ.visible_message(SPAN_DANGER("[targ] dodges the [holding] slam!"), "You dodge [loc]'s [holding] slam!", "You hear a woosh.", 6)
+				return
+			targ.visible_message(SPAN_DANGER("[targ] gets slammed by [src]'s [holding]!"), SPAN_NOTICE("You get slammed by [src]'s [holding]!"), "You hear something soft hit a metal plate!", 6)
+			targ.Weaken(1)
+			targ.throw_at(get_turf_away_from_target_complex(target,user,3), 5, 1, loc)
+			targ.damage_through_armor(20, BRUTE, BP_CHEST, ARMOR_MELEE, 1, src, FALSE, FALSE, 1)
+		else
+			target.visible_message(SPAN_DANGER("[target] gets slammed by [src]'s [holding]!"), SPAN_NOTICE("You get slammed by [src]'s [holding]!"), "You hear something soft hit a metal plate!", 6)
+			target.Weaken(1)
+			target.throw_at(get_turf_away_from_target_complex(target,user,3), 3, 1, loc)
+			target.damage_through_armor(20, BRUTE, BP_CHEST, ARMOR_MELEE, 2, src, FALSE, FALSE, 1)
 
 
+/obj/item/mech_equipment/mounted_system/mace/get_overlay_state()
+	return "[icon_state]_[active ? "on" : "off"]"
 
+/obj/item/tool/hammer/mace/mech
+	name = "mace head"
+	desc = "What are you standing around staring at this for? You shouldn't be seeing this..."
+	icon = 'icons/obj/weapons.dmi'
+	icon_state = "mace"
+	item_state = "mace"
+	matter = list(MATERIAL_PLASTEEL = 15, MATERIAL_PLASTIC = 5)
+	w_class = ITEM_SIZE_BULKY
+	worksound = WORKSOUND_HAMMER
+	wielded = TRUE
+	canremove = FALSE
+	// Its Big
+	armor_divisor = ARMOR_PEN_DEEP
+	tool_qualities = list(QUALITY_HAMMERING = 45)
+	// its mech sized!!!!!
+	structure_damage_factor = STRUCTURE_DAMAGE_DESTRUCTIVE
+	spawn_blacklisted = TRUE
+	force= WEAPON_FORCE_BRUTAL
+	force_wielded_multiplier = 1.5
 
-
-
-
+/obj/item/tool/hammer/mace/mech/attack_self(mob/user)
+	. = ..()
+	return TRUE

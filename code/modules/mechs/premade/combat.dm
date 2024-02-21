@@ -35,3 +35,8 @@
 		HARDPOINT_RIGHT_HAND = /obj/item/mech_equipment/mounted_system/taser/ion,
 		HARDPOINT_HEAD = /obj/item/mech_equipment/light
 	)
+
+/mob/living/exosuit/premade/combat/empty
+	installed_systems = list(
+		HARDPOINT_HEAD = /obj/item/mech_equipment/light
+	)

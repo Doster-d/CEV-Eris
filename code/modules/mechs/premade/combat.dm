@@ -37,6 +37,9 @@
 	)
 
 /mob/living/exosuit/premade/combat/empty
+	installed_software_boards = list(
+		/obj/item/electronics/circuitboard/exosystem/advweapons
+	)
 	installed_systems = list(
 		HARDPOINT_HEAD = /obj/item/mech_equipment/light
 	)

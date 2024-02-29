@@ -1109,3 +1109,33 @@
 /obj/item/tool/hammer/mace/mech/attack_self(mob/user)
 	. = ..()
 	return TRUE
+
+/obj/item/mech_equipment/mounted_system/bfg
+	name = "mounted BFG"
+	icon_state = "plasmabfg"
+	holding_type = /obj/item/gun/energy/plasma_mech
+	restricted_software = list(MECH_SOFTWARE_ADVWEAPONS)
+	restricted_hardpoints = list(HARDPOINT_LEFT_HAND, HARDPOINT_RIGHT_HAND)
+	origin_tech = list(TECH_MATERIAL = 4, TECH_PLASMA = 4, TECH_ENGINEERING = 6, TECH_COMBAT = 3)
+	matter = list(MATERIAL_STEEL = 20, MATERIAL_PLASTEEL = 5)
+	spawn_tags = SPAWN_MECH_QUIPMENT
+	spawn_blacklisted = FALSE
+	rarity_value = 60
+
+/obj/item/gun/energy/plasma_mech
+	name = "mounted BFG"
+	desc = "A large, bulky weapon that fires a massive energy blast. It's a bit unwieldy, but it packs a punch."
+	safety = FALSE
+	spawn_tags = null
+	spawn_blacklisted = TRUE
+	use_external_power = TRUE
+	self_recharge = TRUE
+	restrict_safety = TRUE
+	twohanded = FALSE
+	charge_cost = MECH_WEAPON_POWER_COST * 5
+	projectile_type = /obj/item/projectile/plasma/aoe/heat/strong/mech
+	fire_sound='sound/weapons/energy/melt.ogg'
+	burst = 1
+	fire_delay = 120
+	matter = list()
+	cell_type = /obj/item/cell/medium/mech

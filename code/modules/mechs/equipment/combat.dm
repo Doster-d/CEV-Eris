@@ -1,3 +1,6 @@
+#define CROSSBOW_MAX_AMOUNT 3
+#define CROSSBOW_AMOUNT_OF_MATERIAL_PER_SHOT 5
+
 /obj/item/gun/energy/get_hardpoint_maptext()
 	return "[round(cell.charge / charge_cost)]/[round(cell.maxcharge / charge_cost)]"
 
@@ -1162,19 +1165,19 @@
 /obj/item/mech_equipment/mounted_system/crossbow/attackby(obj/item/I, mob/living/user, params)
 	if(!istype(I, /obj/item/stack/material))
 		return ..()
-	if(CM.bolt_mat)
+	if(CM.shots_amount == CROSSBOW_MAX_AMOUNT)
 		to_chat(user, SPAN_NOTICE("There is already pack of material here! You can remove it by using it in hand."))
 		return
 	var/obj/item/stack/material/mat = I
 	if(!mat.material.hardness)
 		to_chat(user, SPAN_NOTICE("This material can't be sharpened!"))
 		return
-	if(mat.can_use(full_pack))
-		if(mat.use(full_pack))
-			to_chat(user , SPAN_NOTICE("You pack [full_pack] sheets of \the [mat] into \the [src]."))
+	if(mat.can_use(CROSSBOW_AMOUNT_OF_MATERIAL_PER_SHOT*(CROSSBOW_MAX_AMOUNT - CM.shots_amount)))
+		if(mat.use(CROSSBOW_AMOUNT_OF_MATERIAL_PER_SHOT*(CROSSBOW_MAX_AMOUNT - CM.shots_amount)))
+			to_chat(user , SPAN_NOTICE("You pack [CROSSBOW_AMOUNT_OF_MATERIAL_PER_SHOT * CM.shots_amount] sheets of \the [mat] into \the [src]."))
 			CM.bolt_mat = mat.material
 			matter[mat.material.name] += full_pack
-			CM.shots_amount = 3
+			CM.shots_amount += CROSSBOW_MAX_AMOUNT - CM.shots_amount
 			CM.calculate_damage()
 
 /obj/item/mech_equipment/mounted_system/crossbow/attack_self(mob/user)
@@ -1185,10 +1188,10 @@
 			if(!CM.bolt_mat)
 				to_chat(user, SPAN_NOTICE("There is no material left to remove from \the [src]."))
 				return
-			to_chat(user, SPAN_NOTICE("You remove 5 sheets of [CM.bolt_mat.display_name] from \the [src]'s pack attachment point."))
-			matter[CM.bolt_mat.name] -= 5 * CM.shots_amount
+			to_chat(user, SPAN_NOTICE("You remove [CROSSBOW_AMOUNT_OF_MATERIAL_PER_SHOT * CM.shots_amount] sheets of [CM.bolt_mat.display_name] from \the [src]'s pack attachment point."))
+			matter[CM.bolt_mat.name] -= CROSSBOW_AMOUNT_OF_MATERIAL_PER_SHOT * CM.shots_amount
 			var/obj/item/stack/material/mat_stack = new CM.bolt_mat.stack_type(get_turf(user))
-			mat_stack.amount = 5 * CM.shots_amount
+			mat_stack.amount = CROSSBOW_AMOUNT_OF_MATERIAL_PER_SHOT * CM.shots_amount
 			CM.bolt_mat = null
 			CM.shots_amount = 0
 
@@ -1228,3 +1231,6 @@
 	if(!shots_amount)
 		bolt_mat = null
 		calculate_damage()
+
+#undef CROSSBOW_MAX_AMOUNT
+#undef CROSSBOW_AMOUNT_OF_MATERIAL_PER_SHOT

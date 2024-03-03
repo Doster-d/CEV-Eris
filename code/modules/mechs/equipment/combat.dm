@@ -1139,3 +1139,92 @@
 	fire_delay = 120
 	matter = list()
 	cell_type = /obj/item/cell/medium/mech
+
+/obj/item/mech_equipment/mounted_system/crossbow
+	name = "mounted crossbow"
+	icon_state = "crossbow"
+	holding_type = /obj/item/gun/energy/crossbow_mech
+	restricted_software = list(MECH_SOFTWARE_WEAPONS)
+	restricted_hardpoints = list(HARDPOINT_LEFT_HAND, HARDPOINT_RIGHT_HAND)
+	origin_tech = list(TECH_MATERIAL = 4, TECH_PLASMA = 4, TECH_ENGINEERING = 6, TECH_COMBAT = 3)
+	matter = list(MATERIAL_STEEL = 20, MATERIAL_PLASTEEL = 5)
+	spawn_tags = SPAWN_MECH_QUIPMENT
+	spawn_blacklisted = FALSE
+	rarity_value = 60
+
+	var/obj/item/gun/energy/crossbow_mech/CM
+	var/full_pack = 15
+
+/obj/item/mech_equipment/mounted_system/crossbow/Initialize()
+	. = ..()
+	CM = holding
+
+/obj/item/mech_equipment/mounted_system/crossbow/attackby(obj/item/I, mob/living/user, params)
+	if(!istype(I, /obj/item/stack/material))
+		return ..()
+	if(CM.bolt_mat)
+		to_chat(user, SPAN_NOTICE("There is already pack of material here! You can remove it by using it in hand."))
+		return
+	var/obj/item/stack/material/mat = I
+	if(!mat.material.hardness)
+		to_chat(user, SPAN_NOTICE("This material can't be sharpened!"))
+		return
+	if(mat.can_use(full_pack))
+		if(mat.use(full_pack))
+			to_chat(user , SPAN_NOTICE("You pack [full_pack] sheets of \the [mat] into \the [src]."))
+			CM.bolt_mat = mat.material
+			matter[mat.material.name] += full_pack
+			CM.shots_amount = 3
+			CM.calculate_damage()
+
+/obj/item/mech_equipment/mounted_system/crossbow/attack_self(mob/user)
+	if(CM.bolt_mat)
+		to_chat(user, SPAN_NOTICE("You start removing pack from \the [src]."))
+		if(do_after(user, 3 SECONDS, src, TRUE, TRUE))
+			// No duping!!
+			if(!CM.bolt_mat)
+				to_chat(user, SPAN_NOTICE("There is no material left to remove from \the [src]."))
+				return
+			to_chat(user, SPAN_NOTICE("You remove 5 sheets of [CM.bolt_mat.display_name] from \the [src]'s pack attachment point."))
+			matter[CM.bolt_mat.name] -= 5 * CM.shots_amount
+			var/obj/item/stack/material/mat_stack = new CM.bolt_mat.stack_type(get_turf(user))
+			mat_stack.amount = 5 * CM.shots_amount
+			CM.bolt_mat = null
+			CM.shots_amount = 0
+
+/obj/item/gun/energy/crossbow_mech
+	name = "mounted crossbow"
+	desc = "A large, bulky weapon that fires a massive energy bolt. It's a bit unwieldy, but it packs a punch."
+	safety = FALSE
+	spawn_tags = null
+	spawn_blacklisted = TRUE
+	use_external_power = TRUE
+	self_recharge = TRUE
+	restrict_safety = TRUE
+	twohanded = FALSE
+	charge_cost = MECH_WEAPON_POWER_COST * 2
+	projectile_type = /obj/item/projectile/bullet/bolt/mech
+	fire_sound='sound/weapons/energy/melt.ogg'
+	burst = 1
+	fire_delay = 10
+	matter = list()
+	cell_type = /obj/item/cell/medium/mech
+	var/shots_amount = 0
+	var/damage_types = list(BRUTE = 34)
+	var/material/bolt_mat = null
+
+/obj/item/gun/energy/crossbow_mech/proc/calculate_damage()
+	if(bolt_mat)
+		damage_types = list(BRUTE = max(0,round((bolt_mat.hardness/2.5), 1)))
+		return
+	damage_types = initial(damage_types)
+
+/obj/item/gun/energy/crossbow_mech/consume_next_projectile()
+	if(cell.use(charge_cost) && shots_amount)
+		shots_amount -= 1
+		var/obj/item/projectile/bullet/bolt/mech/bolt = new projectile_type
+		bolt.damage_types = damage_types
+		. = bolt
+	if(!shots_amount)
+		bolt_mat = null
+		calculate_damage()

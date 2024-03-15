@@ -1091,7 +1091,7 @@
 
 /obj/item/tool/hammer/mace/mech
 	name = "mace head"
-	desc = "What are you standing around staring at this for? You shouldn't be seeing this..."
+	desc = "A large, heavy mace head. Handle with care."
 	icon = 'icons/obj/weapons.dmi'
 	icon_state = "mace"
 	item_state = "mace"
@@ -1172,9 +1172,12 @@
 	if(!mat.material.hardness)
 		to_chat(user, SPAN_NOTICE("This material can't be sharpened!"))
 		return
+	if(CM.bolt_mat && CM.bolt_mat != mat.material)
+		to_chat(user, SPAN_NOTICE("You can't mix materials!"))
+		return
 	if(mat.can_use(CROSSBOW_AMOUNT_OF_MATERIAL_PER_SHOT*(CROSSBOW_MAX_AMOUNT - CM.shots_amount)))
 		if(mat.use(CROSSBOW_AMOUNT_OF_MATERIAL_PER_SHOT*(CROSSBOW_MAX_AMOUNT - CM.shots_amount)))
-			to_chat(user , SPAN_NOTICE("You pack [CROSSBOW_AMOUNT_OF_MATERIAL_PER_SHOT * CM.shots_amount] sheets of \the [mat] into \the [src]."))
+			to_chat(user , SPAN_NOTICE("You pack [CROSSBOW_AMOUNT_OF_MATERIAL_PER_SHOT * CROSSBOW_MAX_AMOUNT - CM.shots_amount] sheets of \the [mat] into \the [src]."))
 			CM.bolt_mat = mat.material
 			matter[mat.material.name] += full_pack
 			CM.shots_amount += CROSSBOW_MAX_AMOUNT - CM.shots_amount
@@ -1221,6 +1224,12 @@
 		damage_types = list(BRUTE = max(0,round((bolt_mat.hardness/2.5), 1)))
 		return
 	damage_types = initial(damage_types)
+
+/obj/item/gun/energy/crossbow_mech/get_hardpoint_status_value()
+	return shots_amount/CROSSBOW_MAX_AMOUNT
+
+/obj/item/gun/energy/crossbow_mech/get_hardpoint_maptext()
+	return "[shots_amount] / [CROSSBOW_MAX_AMOUNT]"
 
 /obj/item/gun/energy/crossbow_mech/consume_next_projectile()
 	if(cell.use(charge_cost) && shots_amount)
